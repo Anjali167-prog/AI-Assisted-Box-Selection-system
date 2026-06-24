@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 from itertools import permutations
-from typing import Iterator
 
 from boxes.models import Box
-from orders.models import Order
 from products.models import Product
 
 

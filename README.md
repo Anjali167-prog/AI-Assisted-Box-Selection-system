@@ -21,6 +21,23 @@ This system automates the process by selecting the most cost-effective box capab
 
 ---
 
+# System Architecture
+
+```text
+box_selector/
+│
+├── products/
+├── boxes/
+├── orders/
+├── api/
+│
+└── recommendation/
+    └── services/
+        ├── box_selector.py
+        └── packing_engine.py
+```
+
+
 ## Key Features
 
 ### Product Management
@@ -73,22 +90,6 @@ This system automates the process by selecting the most cost-effective box capab
 | Architecture  | Service-Oriented      |
 
 ---
-
-# System Architecture
-
-```text
-box_selector/
-│
-├── products/
-├── boxes/
-├── orders/
-├── api/
-│
-└── recommendation/
-    └── services/
-        ├── box_selector.py
-        └── packing_engine.py
-```
 
 ### Application Layers
 
@@ -339,6 +340,7 @@ coverage report
 
 ---
 
+
 # Design Decisions
 
 ### Why Greedy Packing?
@@ -363,6 +365,42 @@ The recommendation engine therefore prioritizes:
 3. Lowest box cost
 
 ---
+
+# System Architecture
+
+```text
+box_selector/
+│
+├── products/
+├── boxes/
+├── orders/
+├── api/
+│
+└── recommendation/
+    │
+    ├── services/
+    │   ├── box_selector.py
+    │   └── packing_engine.py
+    │
+    └── tests/
+        ├── test_packing_engine.py
+        ├── test_box_selector.py
+        └── test_api.py
+```
+
+## Recommendation Flow
+
+```text
+Order
+  ↓
+Box Selector
+  ↓
+Candidate Boxes
+  ↓
+Packing Engine
+  ↓
+Cheapest Valid Box
+```
 
 # Author
 

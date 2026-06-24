@@ -5,7 +5,7 @@ from django.test import TestCase
 from boxes.models import Box
 from products.models import Product
 
-from ..services.packing_engine import Placement, Void, _fits_in_void, _split_void, _unique_orientations, can_fit
+from ..services.packing_engine import Void, _fits_in_void, _split_void, _unique_orientations, can_fit
 
 
 class UniqueOrientationsTest(TestCase):
@@ -140,6 +140,11 @@ class CanFitTest(TestCase):
         fits, placements = can_fit([(self.product, 3)], self.box)
         self.assertTrue(fits)
         self.assertEqual(len(placements), 3)
+        positions = {
+            (p.x, p.y, p.z)
+            for p in placements
+        }
+        self.assertEqual(len(positions), 3)
 
     def test_multiple_different_products(self):
         small = Product.objects.create(
@@ -149,7 +154,46 @@ class CanFitTest(TestCase):
         self.assertTrue(fits)
         self.assertEqual(len(placements), 3)
 
-    def test_no_box_has_zero_volume_void(self):
+    def test_large_product_and_small_product(self):
+        box = Box.objects.create(
+            name="Cube Box", length=10, width=10, height=10, max_weight=5000, cost=Decimal("4.00")
+        )
+        large = Product.objects.create(
+            name="Large", length=8, width=8, height=8, weight=300
+        )
+        small = Product.objects.create(
+            name="Small", length=2, width=10, height=10, weight=100
+        )
+        fits, _ = can_fit([(small, 1), (large, 1)], box)
+        self.assertTrue(fits)
+
+    def test_awkward_shape_orientation(self):
+        box = Box.objects.create(
+            name="Flat Box 2", length=15, width=20, height=10, max_weight=5000, cost=Decimal("4.00")
+        )
+        awkward = Product.objects.create(
+            name="Awkward", length=20, width=15, height=10, weight=500
+        )
+        fits, placements = can_fit([(awkward, 1)], box)
+        self.assertTrue(fits)
+        self.assertEqual(len(placements), 1)
+
+    def test_empty_product_list(self):
+        fits, placements = can_fit([], self.box)
+        self.assertTrue(fits)
+        self.assertEqual(placements, [])
+
+    def test_quantity_respects_weight_limit(self):
+        heavy = Product.objects.create(
+            name="Heavy", length=5, width=5, height=5, weight=1000
+        )
+        box = Box.objects.create(
+            name="Box", length=50, width=50, height=50, max_weight=2500, cost=Decimal("5.00")
+        )
+        fits, _ = can_fit([(heavy, 3)], box)
+        self.assertFalse(fits)
+
+    def test_flat_product_fits_flat_box(self):
         box = Box.objects.create(
             name="Flat Box", length=100, width=100, height=1, max_weight=5000, cost=Decimal("4.00")
         )
