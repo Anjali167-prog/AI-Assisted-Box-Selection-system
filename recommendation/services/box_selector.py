@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import ExpressionWrapper, F, FloatField
 from django.shortcuts import get_object_or_404
 
@@ -5,6 +6,7 @@ from boxes.models import Box
 from orders.models import Order
 from products.models import Product
 
+from .ai_explainer import AIRecommendationExplainer
 from .packing_engine import can_fit
 
 
@@ -50,6 +52,20 @@ def recommend_box(order_id: int) -> dict | None:
 
         fits, placements = can_fit(product_qty, box)
         if fits:
+            api_key = getattr(settings, "GROK_API_KEY", None)
+            explanation = None
+            if api_key:
+                explainer = AIRecommendationExplainer(api_key=api_key)
+                explanation = explainer.explain(
+                    box_name=box.name,
+                    cost=str(box.cost),
+                    total_items=sum(qty for _, qty in product_qty),
+                    total_weight=float(total_weight),
+                    total_volume=float(total_volume),
+                    box_volume=float(box.box_volume),
+                    box_max_weight=float(box.max_weight),
+                )
+
             return {
                 "box_id": box.id,
                 "box_name": box.name,
@@ -71,6 +87,7 @@ def recommend_box(order_id: int) -> dict | None:
                     }
                     for p in placements
                 ],
+                "explanation": explanation,
             }
 
     return None
