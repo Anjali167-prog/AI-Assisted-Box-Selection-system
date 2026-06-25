@@ -12,10 +12,8 @@ class AIRecommendationExplainerTest(SimpleTestCase):
             "recommended_box": "Medium",
             "reason": "Medium box fits all items, supports total weight and has lowest cost."
         })
-        mock_choice = MagicMock()
-        mock_choice.message.content = mock_content
         mock_response = MagicMock()
-        mock_response.choices = [mock_choice]
+        mock_response.text = mock_content
 
         with patch.object(AIRecommendationExplainer, "_call_api", return_value=mock_response):
             explainer = AIRecommendationExplainer(api_key="sk-test")
@@ -41,13 +39,11 @@ class AIRecommendationExplainerTest(SimpleTestCase):
 
         def capture(prompt=""):
             recorded_kwargs["prompt"] = prompt
-            mock_choice = MagicMock()
-            mock_choice.message.content = json.dumps({
+            mock_response = MagicMock()
+            mock_response.text = json.dumps({
                 "recommended_box": "Medium",
                 "reason": "It fits."
             })
-            mock_response = MagicMock()
-            mock_response.choices = [mock_choice]
             return mock_response
 
         with patch.object(AIRecommendationExplainer, "_call_api", side_effect=capture):
@@ -69,10 +65,7 @@ class AIRecommendationExplainerTest(SimpleTestCase):
             self.assertIn("3 product(s)", prompt)
             self.assertIn("$4.00", prompt)
 
-    def test_uses_grok_base_url_and_env_var(self):
-        with patch("recommendation.services.ai_explainer.OpenAI") as mock_openai:
-            AIRecommendationExplainer()
-            mock_openai.assert_called_once()
-            _, kwargs = mock_openai.call_args
-            self.assertEqual(kwargs["base_url"], "https://api.x.ai/v1")
-            self.assertIn("api_key", kwargs)
+    def test_uses_gemini_api(self):
+        with patch("recommendation.services.ai_explainer.genai") as mock_genai:
+            AIRecommendationExplainer(api_key="sk-test")
+            mock_genai.Client.assert_called_once_with(api_key="sk-test")

@@ -113,13 +113,13 @@ class RecommendBoxTest(TestCase):
         self.assertIn("explanation", result)
 
     def test_ai_explanation_included_when_api_key_set(self):
-        """AI explanation is generated when GROK_API_KEY is configured."""
+        """AI explanation is generated when GEMINI_API_KEY is configured."""
         mock_response = {
             "recommended_box": "Small",
             "reason": "Small box fits all items, supports total weight and has the lowest cost."
         }
         with patch.object(AIRecommendationExplainer, "explain", return_value=mock_response):
-            with self.settings(GROK_API_KEY="xai-test-key"):
+            with self.settings(GEMINI_API_KEY="sk-test"):
                 order = self._create_order([(self.product, 1)])
                 result = recommend_box(order.id)
                 self.assertEqual(result["explanation"], mock_response)

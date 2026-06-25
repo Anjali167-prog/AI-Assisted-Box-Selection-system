@@ -52,7 +52,7 @@ def recommend_box(order_id: int) -> dict | None:
 
         fits, placements = can_fit(product_qty, box)
         if fits:
-            api_key = getattr(settings, "GROK_API_KEY", None)
+            api_key = getattr(settings, "GEMINI_API_KEY", None)
             explanation = None
             if api_key:
                 explainer = AIRecommendationExplainer(api_key=api_key)

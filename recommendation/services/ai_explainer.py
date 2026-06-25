@@ -1,15 +1,18 @@
 import json
+import logging
 import os
 
-from openai import OpenAI
+from google import genai
+
+logger = logging.getLogger(__name__)
 
 
 class AIRecommendationExplainer:
     def __init__(self, api_key: str | None = None):
-        self.client = OpenAI(
-            api_key=api_key or os.getenv("GROK_API_KEY"),
-            base_url="https://api.x.ai/v1",
-        )
+        resolved_key = api_key or os.getenv("GEMINI_API_KEY")
+        if not resolved_key:
+            logger.warning("No GEMINI_API_KEY provided — AI explanations disabled")
+        self.client = genai.Client(api_key=resolved_key)
 
     def _build_prompt(
         self,
@@ -31,13 +34,14 @@ class AIRecommendationExplainer:
         )
 
     def _call_api(self, prompt: str):
-        return self.client.chat.completions.create(
-            model="grok-4.3",
-            messages=[
-                {"role": "system", "content": "You are a box selection assistant."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0,
+        return self.client.models.generate_content(
+            model="gemini-2.0-flash-lite",
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                temperature=0,
+                response_mime_type="application/json",
+                system_instruction="You are a box selection assistant.",
+            ),
         )
 
     def explain(
@@ -61,7 +65,11 @@ class AIRecommendationExplainer:
         )
         try:
             response = self._call_api(prompt=prompt)
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(response.text)
             return result
+        except json.JSONDecodeError:
+            logger.exception("Gemini returned non-JSON response")
+            return None
         except Exception:
+            logger.exception("Gemini API call failed")
             return None
