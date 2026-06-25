@@ -388,3 +388,8 @@ This repository includes the following supporting documents required for the ass
 - `AI_USAGE.md` – AI tools used, representative prompts, accepted/rejected outputs, mistakes identified, and verification steps
 - `TEST_OUTPUT.md` – Test execution output
 - `CHAT_TRANSCRIPT.pdf` – Export of the development conversation used during the assignment
+
+### Chat Transcript (Online)
+
+For convenience, the development conversation can also be viewed using the ChatGPT shared conversation link:
+https://chatgpt.com/share/6a3c3007-0cf8-83e8-ba27-52ba10e865ef
