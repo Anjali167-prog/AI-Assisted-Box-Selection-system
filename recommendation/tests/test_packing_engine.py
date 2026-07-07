@@ -50,25 +50,25 @@ class SplitVoidTest(TestCase):
         void = Void(0, 0, 0, 20, 15, 10)
         result = _split_void(void, (10, 8, 5))
         right = [v for v in result if v.x == 10][0]
-        self.assertEqual(right.l, 10)
-        self.assertEqual(right.w, 15)
-        self.assertEqual(right.h, 10)
+        self.assertEqual(right.length, 10)
+        self.assertEqual(right.width, 15)
+        self.assertEqual(right.height, 10)
 
     def test_split_front_void_position(self):
         void = Void(0, 0, 0, 20, 15, 10)
         result = _split_void(void, (10, 8, 5))
         front = [v for v in result if v.y == 8][0]
-        self.assertEqual(front.l, 20)
-        self.assertEqual(front.w, 7)
-        self.assertEqual(front.h, 10)
+        self.assertEqual(front.length, 20)
+        self.assertEqual(front.width, 7)
+        self.assertEqual(front.height, 10)
 
     def test_split_top_void_position(self):
         void = Void(0, 0, 0, 20, 15, 10)
         result = _split_void(void, (10, 8, 5))
         top = [v for v in result if v.z == 5][0]
-        self.assertEqual(top.l, 20)
-        self.assertEqual(top.w, 15)
-        self.assertEqual(top.h, 5)
+        self.assertEqual(top.length, 20)
+        self.assertEqual(top.width, 15)
+        self.assertEqual(top.height, 5)
 
     def test_split_item_uses_full_width_skips_front_void(self):
         void = Void(0, 0, 0, 20, 15, 10)
@@ -124,7 +124,7 @@ class CanFitTest(TestCase):
         self.assertTrue(fits)
         self.assertEqual(len(placements), 1)
         placed = placements[0]
-        self.assertEqual(placed.h, 120)
+        self.assertEqual(placed.height, 120)
 
     def test_rod_too_long_for_any_orientation(self):
         rod = Product.objects.create(
@@ -221,4 +221,4 @@ class PlacementDataTest(TestCase):
     def test_placement_dimensions_match_product_orientation(self):
         _, placements = can_fit([(self.product, 1)], self.box)
         placed = placements[0]
-        self.assertEqual(placed.l * placed.w * placed.h, 10 * 8 * 5)
+        self.assertEqual(placed.length * placed.width * placed.height, 10 * 8 * 5)

@@ -10,13 +10,13 @@ class Void:
     x: float
     y: float
     z: float
-    l: float
-    w: float
-    h: float
+    length: float
+    width: float
+    height: float
 
     @property
     def volume(self) -> float:
-        return self.l * self.w * self.h
+        return self.length * self.width * self.height
 
 
 @dataclass
@@ -25,15 +25,15 @@ class Placement:
     x: float
     y: float
     z: float
-    l: float
-    w: float
-    h: float
+    length: float
+    width: float
+    height: float
 
 
-def _unique_orientations(l: float, w: float, h: float) -> list[tuple[float, float, float]]:
+def _unique_orientations(length: float, width: float, height: float) -> list[tuple[float, float, float]]:
     seen: set[tuple[float, float, float]] = set()
     result: list[tuple[float, float, float]] = []
-    for p in permutations((l, w, h)):
+    for p in permutations((length, width, height)):
         if p not in seen:
             seen.add(p)
             result.append(p)
@@ -42,24 +42,43 @@ def _unique_orientations(l: float, w: float, h: float) -> list[tuple[float, floa
 
 def _fits_in_void(item_dims: tuple[float, float, float], void: Void) -> bool:
     il, iw, ih = item_dims
-    return il <= void.l and iw <= void.w and ih <= void.h
+    return il <= void.length and iw <= void.width and ih <= void.height
+
+
+def _overlaps(
+    placements: list[Placement],
+    x: float, y: float, z: float,
+    length: float, width: float, height: float,
+) -> bool:
+    for p in placements:
+        if (p.x < x + length and p.x + p.length > x
+                and p.y < y + width and p.y + p.width > y
+                and p.z < z + height and p.z + p.height > z):
+            return True
+    return False
 
 
 def _split_void(void: Void, item: tuple[float, float, float]) -> list[Void]:
     il, iw, ih = item
     new_voids: list[Void] = []
 
-    right_l = void.l - il
+    right_l = void.length - il
     if right_l > 0:
-        new_voids.append(Void(void.x + il, void.y, void.z, right_l, void.w, void.h))
+        new_voids.append(
+            Void(void.x + il, void.y, void.z, right_l, void.width, void.height)
+        )
 
-    front_w = void.w - iw
+    front_w = void.width - iw
     if front_w > 0:
-        new_voids.append(Void(void.x, void.y + iw, void.z, void.l, front_w, void.h))
+        new_voids.append(
+            Void(void.x, void.y + iw, void.z, void.length, front_w, void.height)
+        )
 
-    top_h = void.h - ih
+    top_h = void.height - ih
     if top_h > 0:
-        new_voids.append(Void(void.x, void.y, void.z + ih, void.l, void.w, top_h))
+        new_voids.append(
+            Void(void.x, void.y, void.z + ih, void.length, void.width, top_h)
+        )
 
     return new_voids
 
@@ -80,14 +99,16 @@ def can_fit(
         reverse=True,
     )
 
-    voids: list[Void] = [Void(0, 0, 0, box.length, box.width, box.height)]
+    voids: list[Void] = [
+        Void(0, 0, 0, float(box.length), float(box.width), float(box.height))
+    ]
     placements: list[Placement] = []
     orientation_cache: dict[int, list[tuple[float, float, float]]] = {}
 
     for product in expanded:
         if product.id not in orientation_cache:
             orientation_cache[product.id] = _unique_orientations(
-                product.length, product.width, product.height
+                float(product.length), float(product.width), float(product.height)
             )
         orientations = orientation_cache[product.id]
 
@@ -96,15 +117,21 @@ def can_fit(
             for orient in orientations:
                 if _fits_in_void(orient, void):
                     il, iw, ih = orient
+                    if _overlaps(
+                        placements,
+                        void.x, void.y, void.z,
+                        il, iw, ih,
+                    ):
+                        continue
                     placements.append(
                         Placement(
                             product_id=product.id,
                             x=void.x,
                             y=void.y,
                             z=void.z,
-                            l=il,
-                            w=iw,
-                            h=ih,
+                            length=il,
+                            width=iw,
+                            height=ih,
                         )
                     )
                     new_voids = _split_void(void, orient)

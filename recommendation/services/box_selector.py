@@ -83,7 +83,7 @@ def recommend_box(order_id: int) -> dict | None:
                     {
                         "product_id": p.product_id,
                         "position": {"x": p.x, "y": p.y, "z": p.z},
-                        "orientation": {"length": p.l, "width": p.w, "height": p.h},
+                        "orientation": {"length": p.length, "width": p.width, "height": p.height},
                     }
                     for p in placements
                 ],

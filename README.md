@@ -319,8 +319,8 @@ GEMINI_API_KEY=your-api-key
 python manage.py runserver
 ```
 
-* Server: http://127.0.0.1:8000
-* Browsable API: http://127.0.0.1:8000/api/
+* Server: http://127.0.0.1:8080
+* Browsable API: http://127.0.0.1:8080/api/
 
 ---
 
